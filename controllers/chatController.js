@@ -1,15 +1,15 @@
-const Chat = require('../models/Chat');
-const BoardingHouse = require('../models/BoardingHouse');
-const { validationResult } = require('express-validator');
+const Chat = require("../models/Chat");
+const BoardingHouse = require("../models/BoardingHouse");
+const { validationResult } = require("express-validator");
 
 const getChats = async (req, res) => {
   try {
     const chats = await Chat.find({
-      'participants.user': req.user.id,
+      "participants.user": req.user.id,
     })
-      .populate('participants.user', 'name profileImage')
-      .populate('boardingHouse', 'title images')
-      .populate('lastMessage.sender', 'name')
+      .populate("participants.user", "name profileImage")
+      .populate("boardingHouse", "title images")
+      .populate("lastMessage.sender", "name")
       .sort({ updatedAt: -1 });
 
     res.status(200).json({
@@ -28,25 +28,25 @@ const getChats = async (req, res) => {
 const getChat = async (req, res) => {
   try {
     const chat = await Chat.findById(req.params.id)
-      .populate('participants.user', 'name profileImage')
-      .populate('boardingHouse', 'title')
-      .populate('messages.sender', 'name profileImage');
+      .populate("participants.user", "name profileImage")
+      .populate("boardingHouse", "title")
+      .populate("messages.sender", "name profileImage");
 
     if (!chat) {
       return res.status(404).json({
         success: false,
-        message: 'Chat not found',
+        message: "Chat not found",
       });
     }
 
     const isParticipant = chat.participants.some(
-      participant => participant.user._id.toString() === req.user.id
+      (participant) => participant.user._id.toString() === req.user.id,
     );
 
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to access this chat',
+        message: "Not authorized to access this chat",
       });
     }
 
@@ -78,19 +78,19 @@ const createChat = async (req, res) => {
     if (!boardingHouse) {
       return res.status(404).json({
         success: false,
-        message: 'Boarding house not found',
+        message: "Boarding house not found",
       });
     }
 
     const existingChat = await Chat.findOne({
       boardingHouse: boardingHouseId,
-      'participants.user': { $all: [req.user.id, participantId] },
+      "participants.user": { $all: [req.user.id, participantId] },
     });
 
     if (existingChat) {
       const populatedChat = await Chat.findById(existingChat._id)
-        .populate('participants.user', 'name profileImage')
-        .populate('boardingHouse', 'title images');
+        .populate("participants.user", "name profileImage")
+        .populate("boardingHouse", "title images");
 
       return res.status(200).json({
         success: true,
@@ -101,14 +101,17 @@ const createChat = async (req, res) => {
     const chat = await Chat.create({
       participants: [
         { user: req.user.id, role: req.user.role },
-        { user: participantId, role: req.user.role === 'owner' ? 'user' : 'owner' },
+        {
+          user: participantId,
+          role: req.user.role === "owner" ? "user" : "owner",
+        },
       ],
       boardingHouse: boardingHouseId,
     });
 
     const populatedChat = await Chat.findById(chat._id)
-      .populate('participants.user', 'name profileImage')
-      .populate('boardingHouse', 'title images');
+      .populate("participants.user", "name profileImage")
+      .populate("boardingHouse", "title images");
 
     res.status(201).json({
       success: true,
@@ -132,25 +135,25 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    const { content, messageType = 'text', fileUrl } = req.body;
+    const { content, messageType = "text", fileUrl } = req.body;
 
     let chat = await Chat.findById(req.params.id);
 
     if (!chat) {
       return res.status(404).json({
         success: false,
-        message: 'Chat not found',
+        message: "Chat not found",
       });
     }
 
     const isParticipant = chat.participants.some(
-      participant => participant.user.toString() === req.user.id
+      (participant) => participant.user.toString() === req.user.id,
     );
 
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to send messages in this chat',
+        message: "Not authorized to send messages in this chat",
       });
     }
 
@@ -168,8 +171,8 @@ const sendMessage = async (req, res) => {
     await chat.save();
 
     const populatedChat = await Chat.findById(chat._id)
-      .populate('participants.user', 'name profileImage')
-      .populate('messages.sender', 'name profileImage');
+      .populate("participants.user", "name profileImage")
+      .populate("messages.sender", "name profileImage");
 
     res.status(201).json({
       success: true,
@@ -190,33 +193,28 @@ const markMessagesAsRead = async (req, res) => {
     if (!chat) {
       return res.status(404).json({
         success: false,
-        message: 'Chat not found',
+        message: "Chat not found",
       });
     }
 
     const isParticipant = chat.participants.some(
-      participant => participant.user.toString() === req.user.id
+      (participant) => participant.user.toString() === req.user.id,
     );
 
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to access this chat',
+        message: "Not authorized to access this chat",
       });
     }
 
-    chat.messages.forEach(message => {
-      if (message.sender.toString() !== req.user.id && !message.isRead) {
-        message.isRead = true;
-        message.readAt = new Date();
-      }
-    });
+    await chat.markMessagesAsRead(req.user.id);
 
-    await chat.save();
+    const updatedChat = await Chat.findById(chat._id);
 
     res.status(200).json({
       success: true,
-      data: chat,
+      data: updatedChat,
     });
   } catch (error) {
     res.status(500).json({
