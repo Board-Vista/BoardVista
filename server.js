@@ -11,10 +11,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
-// app.use('/api/users', require('./routes/userRoutes'));
-// app.use('/api/boarding', require('./routes/boardingRoutes'));
-// app.use('/api/review', require('./routes/reviewRoutes'));
-// app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/boarding', require('./routes/boardingRoutes'));
+app.use('/api/review', require('./routes/reviewRoutes'));
+app.use('/api/chat', require('./routes/chatRoutes'));
 
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode ? res.statusCode : 500;

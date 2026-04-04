@@ -168,7 +168,7 @@ const deleteReview = async (req, res) => {
       });
     }
 
-    await review.remove();
+    await review.deleteOne();
 
     res.status(200).json({
       success: true,
@@ -191,7 +191,7 @@ const getReviewStats = async (req, res) => {
     const { boardingHouseId } = req.params;
 
     const stats = await Review.aggregate([
-      { $match: { boardingHouse: mongoose.Types.ObjectId(boardingHouseId) } },
+      { $match: { boardingHouse: new mongoose.Types.ObjectId(boardingHouseId) } },
       {
         $group: {
           _id: '$boardingHouse',

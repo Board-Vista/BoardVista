@@ -14,11 +14,11 @@ const {
 
 router.get('/', getBoardingHouses);
 router.get('/search/nearby', getNearbyBoardingHouses);
+router.get('/owner/my-listings',protect, getMyBoardingHouses);
 router.get('/:id', getBoardingHouse);
 
 router.post('/',protect, createBoardingHouse);
 router.put('/:id',protect, updateBoardingHouse);
 router.delete('/:id',protect, deleteBoardingHouse);
-router.get('/owner/my-listings',protect, getMyBoardingHouses);
 
 module.exports = router;
