@@ -10,7 +10,7 @@ const getBoardingHouses = async (req, res) => {
     }
 
     if (req.query.city) {
-      query['address.city'] = new RegExp(req.query.city, 'i');
+      query.address = new RegExp(req.query.city, 'i');
     }
 
     if (req.query.minPrice || req.query.maxPrice) {

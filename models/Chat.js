@@ -39,7 +39,7 @@ const chatSchema = new mongoose.Schema({
     },
     role: {
       type: String,
-      enum: ['owner', 'tenant'],
+      enum: ['owner', 'user'],
       required: true,
     },
   }],
@@ -48,6 +48,7 @@ const chatSchema = new mongoose.Schema({
     ref: 'BoardingHouse',
     required: true,
   },
+  messages: [messageSchema],
   lastMessage: {
     type: messageSchema,
   },
@@ -68,14 +69,17 @@ const chatSchema = new mongoose.Schema({
 });
 
 chatSchema.index({ participants: 1 });
+chatSchema.index({ 'participants.user': 1 });
 chatSchema.index({ boardingHouse: 1 });
 
 chatSchema.methods.markMessagesAsRead = async function (userId) {
-  await this.updateMany(
-    { 'messages.sender': { $ne: userId } },
-    { $set: { 'messages.$[elem].isRead': true, 'messages.$[elem].readAt': new Date() } },
-    { arrayFilters: [{ 'elem.sender': { $ne: userId } }] }
-  );
+  this.messages.forEach((message) => {
+    if (message.sender.toString() !== userId.toString() && !message.isRead) {
+      message.isRead = true;
+      message.readAt = new Date();
+    }
+  });
+  await this.save();
 };
 
 chatSchema.methods.getUnreadCount = async function (userId) {

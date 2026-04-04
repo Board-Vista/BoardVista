@@ -100,4 +100,14 @@ reviewSchema.post('remove', async function () {
   await this.constructor.getAverageRating(this.boardingHouse);
 });
 
+reviewSchema.post('deleteOne', { document: true, query: false }, async function () {
+  await this.constructor.getAverageRating(this.boardingHouse);
+});
+
+reviewSchema.post('findOneAndDelete', async function (doc) {
+  if (doc) {
+    await doc.constructor.getAverageRating(doc.boardingHouse);
+  }
+});
+
 module.exports = mongoose.model('Review', reviewSchema);
