@@ -1,6 +1,6 @@
-# BoardVista Backend API
+# BoardVista 
 
-Backend API for BoardVista mobile application - a boarding house discovery platform for Vavuniya.
+BoardVista mobile application - a boarding house discovery platform for Vavuniya.
 
 ## Features
 
